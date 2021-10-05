@@ -1,23 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-enum UiMode
-{
-    Menu,
-    Counting,
-}
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
     public short leftPoints = 0;
-    public GameObject leftPointsField;
+    public List<GameObject> leftPointsFields;
+    public List<GameObject> leftPointsHistoryFields;
+    private List<short> leftPointHistory = new List<short>(); 
 
     public short rightPoints = 0;
-    public GameObject rightPointsField;
+    public List<GameObject> rightPointsFields;
+    public List<GameObject> rightPointsHistoryFields;
+    private List<short> rightPointHistory = new List<short>(); 
 
-    
-    private UiMode state = UiMode.Menu;
+    public GameObject threeButtonsUI;
+    public GameObject twoButtonsUI;
+    public GameObject settingsUI;
+    public GameObject controlUI;
 
     // Start is called before the first frame update
     void Start()
@@ -31,6 +32,27 @@ public class UIManager : MonoBehaviour
         
     }
 
+    public void  SwitchTo3Buttons() {
+        twoButtonsUI.SetActive(false);
+        threeButtonsUI.SetActive(true);
+        settingsUI.SetActive(false);
+        controlUI.SetActive(true);
+    }
+
+    public void  SwitchTo2Buttons() {
+        twoButtonsUI.SetActive(true);
+        threeButtonsUI.SetActive(false);
+        settingsUI.SetActive(false);
+        controlUI.SetActive(true);        
+    }
+
+    public void  ToSettings() {
+        twoButtonsUI.SetActive(false);
+        threeButtonsUI.SetActive(false);
+        settingsUI.SetActive(true);
+        controlUI.SetActive(false);        
+    }
+    
     public void Add1PointLeft() {
         addPoints(true, 1);
     }    
@@ -58,8 +80,10 @@ public class UIManager : MonoBehaviour
     private void addPoints( bool left, short howMany) {
         if(left) {
             leftPoints += howMany;
+            leftPointHistory.Add(howMany);
         } else {
             rightPoints += howMany;
+            rightPointHistory.Add(howMany);
         }
 
         updateState();
@@ -68,12 +92,32 @@ public class UIManager : MonoBehaviour
     public void RestartCount() {
         leftPoints = 0;
         rightPoints = 0;
+        leftPointHistory.Clear();
+        rightPointHistory.Clear();
         updateState();
     }
 
+    private string GetHistory(List<short> list) {
+        string result = "";
+        foreach(short value in list) {
+            result += value + " ";
+        }
+        return result;
+    }
+
     private void updateState() {
-        leftPointsField.GetComponent<UnityEngine.UI.Text>().text = leftPoints.ToString();
-        rightPointsField.GetComponent<UnityEngine.UI.Text>().text = rightPoints.ToString();
-        Debug.Log("state: left: " + leftPoints + ", right: " + rightPoints +". State: " + state);
+        foreach (GameObject field in leftPointsFields) {
+            field.GetComponent<UnityEngine.UI.Text>().text = leftPoints.ToString();
+        }
+        foreach (GameObject field in leftPointsHistoryFields) {
+            field.GetComponent<UnityEngine.UI.Text>().text = GetHistory(leftPointHistory);
+        }
+        foreach (GameObject field in rightPointsFields) {
+            field.GetComponent<UnityEngine.UI.Text>().text = rightPoints.ToString();
+        }
+        foreach (GameObject field in rightPointsHistoryFields) {
+            field.GetComponent<UnityEngine.UI.Text>().text = GetHistory(rightPointHistory);
+        }
+        Debug.Log("state: left: " + leftPoints + ", right: " + rightPoints +". history: " + leftPointHistory.Count + ", " + rightPointHistory.Count);
     }
 }
