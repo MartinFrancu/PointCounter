@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    private bool cameraActive = false;
     public short leftPoints = 0;
     public List<GameObject> leftPointsFields;
     public List<GameObject> leftPointsHistoryFields;
@@ -13,16 +14,21 @@ public class UIManager : MonoBehaviour
     public short rightPoints = 0;
     public List<GameObject> rightPointsFields;
     public List<GameObject> rightPointsHistoryFields;
-    private List<short> rightPointHistory = new List<short>(); 
+    private List<short> rightPointHistory = new List<short  >(); 
 
     public GameObject threeButtonsUI;
     public GameObject twoButtonsUI;
-    public GameObject settingsUI;
+    public GameObject pointCounterSettingsUI;
+    public GameObject cameraSettingsUI;
     public GameObject controlUI;
+
+    public GameObject cameraBackgroundUI;
+    public GameObject redBlueBackgroundUI;
 
     // Start is called before the first frame update
     void Start()
     {
+        ToCameraMode();
         updateState();
     }
 
@@ -32,25 +38,53 @@ public class UIManager : MonoBehaviour
         
     }
 
-    public void  SwitchTo3Buttons() {
+
+    private void ShowBackground() {
+        cameraBackgroundUI.SetActive(cameraActive);
+        redBlueBackgroundUI.SetActive(!cameraActive);
+    }
+    private void ShowSettings(bool show) {
+        pointCounterSettingsUI.SetActive(!cameraActive && show);
+        cameraSettingsUI.SetActive(cameraActive && show);
+    }
+
+    public void ToCameraMode() {
+        this.cameraActive = true;
+        ShowBackground();
+        
         twoButtonsUI.SetActive(false);
-        threeButtonsUI.SetActive(true);
-        settingsUI.SetActive(false);
+        threeButtonsUI.SetActive(false);
+        ShowSettings(false);
         controlUI.SetActive(true);
     }
 
-    public void  SwitchTo2Buttons() {
-        twoButtonsUI.SetActive(true);
-        threeButtonsUI.SetActive(false);
-        settingsUI.SetActive(false);
-        controlUI.SetActive(true);        
+    public void ToPointCountMode() {
+        this.cameraActive = false;
+        SwitchTo2Buttons();
     }
 
-    public void  ToSettings() {
+    public void SwitchTo3Buttons() {
+        twoButtonsUI.SetActive(false);
+        threeButtonsUI.SetActive(true);
+        controlUI.SetActive(true);
+        ShowSettings(false);
+        ShowBackground(); 
+    }
+
+    public void SwitchTo2Buttons() {
+        twoButtonsUI.SetActive(true);
+        threeButtonsUI.SetActive(false);
+        controlUI.SetActive(true); 
+        ShowSettings(false);
+        ShowBackground(); 
+    }
+
+    public void ToSettings() {
         twoButtonsUI.SetActive(false);
         threeButtonsUI.SetActive(false);
-        settingsUI.SetActive(true);
-        controlUI.SetActive(false);        
+        controlUI.SetActive(false); 
+        ShowSettings(true);
+        ShowBackground();      
     }
     
     public void Add1PointLeft() {
