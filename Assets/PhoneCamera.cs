@@ -6,11 +6,18 @@ using UnityEngine.UI;
 
 public class PhoneCamera : MonoBehaviour
 {
-///////////////////////////////////////
- 
-    private Texture savedPicture;
+    const int bufferSize = 20;
+    private int currentTimeIndex = 0;
+    private Texture2D[] pictureBuffer;
+    private int replayCurrentIndex = 0;
+    private int markedTimeIndex = 0;
+    private Texture2D[] savedPictures;
+
+    public int SlowDown = 2;
+    public int replaySlowCounter = 0;
+    
+
     public bool inLiveMode = true;
-///////////////////////////////////////
 
     private bool camAvailable;
     private WebCamTexture backCam;
@@ -21,6 +28,7 @@ public class PhoneCamera : MonoBehaviour
 
     private void Start()
     {
+
 
         defaultBackground = background.texture;
         WebCamDevice[] devices = WebCamTexture.devices;
@@ -45,12 +53,31 @@ public class PhoneCamera : MonoBehaviour
             Debug.Log("Unable to find back camera");
             return;
         }
-
-        backCam.Play();
-        background.texture = backCam;
-        inLiveMode = true;
         camAvailable = true;
+        inLiveMode = true;
+        SetCamAsBackground();
+        InitializeBuffers();
+    }
 
+    private void InitializeBuffers() {
+        pictureBuffer = new Texture2D[bufferSize];
+        for(int index = 0; index < pictureBuffer.Length; index++) {
+            pictureBuffer[index] = new Texture2D(backCam.width, backCam.height);
+        }
+
+        savedPictures = new Texture2D[bufferSize];
+        for(int index = 0; index < savedPictures.Length; index++) {
+            savedPictures[index] = new Texture2D(backCam.width, backCam.height);
+        }
+    }
+    
+    private void SetCamAsBackground() {
+        if(camAvailable) {
+            backCam.Play();
+            background.texture = backCam;
+        } else {
+            Debug.Log("SetCamAsBackground: cam not available");
+        }
     }
 
     private void Update()
@@ -59,29 +86,61 @@ public class PhoneCamera : MonoBehaviour
         {
             return;
         }
+        
+        if(inLiveMode) {
+            float ratio = (float)backCam.width / (float)backCam.height;
+            fit.aspectRatio = ratio;
 
-        float ratio = (float)backCam.width / (float)backCam.height;
-        fit.aspectRatio = ratio;
+            float scaleY = backCam.videoVerticallyMirrored ? -1f : 1f;
+            background.rectTransform.localScale = new Vector3(1f, scaleY, 1f);
+            int orient = -backCam.videoRotationAngle;
 
-        float scaleY = backCam.videoVerticallyMirrored ? -1f : 1f;
-        background.rectTransform.localScale = new Vector3(1f, scaleY, 1f);
-        int orient = -backCam.videoRotationAngle;
+            background.rectTransform.localEulerAngles = new Vector3(0, 0, orient);
 
-        background.rectTransform.localEulerAngles = new Vector3(0, 0, orient);
+            currentTimeIndex = WrappedIndexIncrement(currentTimeIndex);
+
+            if (pictureBuffer[currentTimeIndex].width != backCam.width || pictureBuffer[currentTimeIndex].height != backCam.height) {
+                pictureBuffer[currentTimeIndex] = new Texture2D(backCam.width, backCam.height);
+            }
+            pictureBuffer[currentTimeIndex].SetPixels(backCam.GetPixels());
+            pictureBuffer[currentTimeIndex].Apply();
+        } else {
+            if(replaySlowCounter == 0)
+            {
+                replayCurrentIndex = WrappedIndexIncrement(replayCurrentIndex);
+                background.texture = savedPictures[replayCurrentIndex];
+            }
+
+            replaySlowCounter++;
+            if(replaySlowCounter >= SlowDown) {
+                replaySlowCounter = 0;
+            }
+        }
     }
 
-    public void onMark()
+    public void OnMark()
     {
-        savedPicture = background.texture;
+        Texture2D[] help = savedPictures;
+        savedPictures = pictureBuffer;
+        markedTimeIndex = currentTimeIndex;
+
+        // reinitialize buffer to new array
+        pictureBuffer = help;
+        currentTimeIndex = 0;
     }
 
-    public void toggleLiveMode()
-    {
+    private int WrappedIndexIncrement(int index) {
+        return index < bufferSize - 1 ? index + 1 : 0;
+    }
+
+    public void OnReviewToggle() {
         inLiveMode = !inLiveMode;
         if(inLiveMode) {
             background.texture = backCam;
         } else {
-            background.texture = savedPicture;
+            replayCurrentIndex = WrappedIndexIncrement(markedTimeIndex);
+            background.texture = savedPictures[replayCurrentIndex];   
         }
     }
+
 }
