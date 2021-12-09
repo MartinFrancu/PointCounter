@@ -16,6 +16,9 @@ public class UIManager : MonoBehaviour
     public List<GameObject> rightPointsHistoryFields;
     private List<short> rightPointHistory = new List<short  >(); 
 
+    public GameObject cameraPointCounterUI;
+    public GameObject pointCounterUI;
+
     public GameObject threeButtonsUI;
     public GameObject twoButtonsUI;
     public GameObject pointCounterSettingsUI;
@@ -24,6 +27,9 @@ public class UIManager : MonoBehaviour
 
     public GameObject cameraBackgroundUI;
     public GameObject redBlueBackgroundUI;
+
+    public GameObject liveModeUI;
+    public GameObject bookmarkInspectionModeUI;
 
     // Start is called before the first frame update
     void Start()
@@ -37,12 +43,6 @@ public class UIManager : MonoBehaviour
     {
         
     }
-
-
-    private void ShowBackground() {
-        cameraBackgroundUI.SetActive(cameraActive);
-        redBlueBackgroundUI.SetActive(!cameraActive);
-    }
     private void ShowSettings(bool show) {
         pointCounterSettingsUI.SetActive(!cameraActive && show);
         cameraSettingsUI.SetActive(cameraActive && show);
@@ -50,16 +50,15 @@ public class UIManager : MonoBehaviour
 
     public void ToCameraMode() {
         this.cameraActive = true;
-        ShowBackground();
-        
-        twoButtonsUI.SetActive(false);
-        threeButtonsUI.SetActive(false);
-        ShowSettings(false);
-        controlUI.SetActive(true);
+        pointCounterUI.SetActive(false);
+        cameraPointCounterUI.SetActive(true);
+        ToLiveMode();
     }
 
     public void ToPointCountMode() {
         this.cameraActive = false;
+        pointCounterUI.SetActive(true);
+        cameraPointCounterUI.SetActive(false);
         SwitchTo2Buttons();
     }
 
@@ -68,7 +67,6 @@ public class UIManager : MonoBehaviour
         threeButtonsUI.SetActive(true);
         controlUI.SetActive(true);
         ShowSettings(false);
-        ShowBackground(); 
     }
 
     public void SwitchTo2Buttons() {
@@ -76,15 +74,13 @@ public class UIManager : MonoBehaviour
         threeButtonsUI.SetActive(false);
         controlUI.SetActive(true); 
         ShowSettings(false);
-        ShowBackground(); 
     }
 
     public void ToSettings() {
         twoButtonsUI.SetActive(false);
         threeButtonsUI.SetActive(false);
         controlUI.SetActive(false); 
-        ShowSettings(true);
-        ShowBackground();      
+        ShowSettings(true);      
     }
     
     public void Add1PointLeft() {
@@ -153,5 +149,15 @@ public class UIManager : MonoBehaviour
             field.GetComponent<UnityEngine.UI.Text>().text = GetHistory(rightPointHistory);
         }
         Debug.Log("state: left: " + leftPoints + ", right: " + rightPoints +". history: " + leftPointHistory.Count + ", " + rightPointHistory.Count);
+    }
+
+    public void ToLiveMode() {
+        liveModeUI.SetActive(true);
+        bookmarkInspectionModeUI.SetActive(false);
+    }
+
+    public void ToBookmarkInspectionMode() {
+        liveModeUI.SetActive(false);
+        bookmarkInspectionModeUI.SetActive(true);
     }
 }

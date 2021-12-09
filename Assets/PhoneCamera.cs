@@ -13,8 +13,10 @@ public class PhoneCamera : MonoBehaviour
     private int markedTimeIndex = 0;
     private Texture2D[] savedPictures;
 
-    public int SlowDown = 2;
+    public int slowDown = 4;
     public int replaySlowCounter = 0;
+    
+    public bool replay = false;
     
 
     public bool inLiveMode = true;
@@ -28,8 +30,6 @@ public class PhoneCamera : MonoBehaviour
 
     private void Start()
     {
-
-
         defaultBackground = background.texture;
         WebCamDevice[] devices = WebCamTexture.devices;
         
@@ -105,15 +105,19 @@ public class PhoneCamera : MonoBehaviour
             pictureBuffer[currentTimeIndex].SetPixels(backCam.GetPixels());
             pictureBuffer[currentTimeIndex].Apply();
         } else {
-            if(replaySlowCounter == 0)
-            {
-                replayCurrentIndex = WrappedIndexIncrement(replayCurrentIndex);
-                background.texture = savedPictures[replayCurrentIndex];
-            }
+            if (replay) {
+                if(replaySlowCounter == 0)
+                {
+                    replayCurrentIndex = WrappedIndexIncrement(replayCurrentIndex);
+                    background.texture = savedPictures[replayCurrentIndex];
+                }
 
-            replaySlowCounter++;
-            if(replaySlowCounter >= SlowDown) {
-                replaySlowCounter = 0;
+                replaySlowCounter++;
+                if(replaySlowCounter >= slowDown) {
+                    replaySlowCounter = 0;
+                }
+            } else {
+                // dont step
             }
         }
     }
@@ -143,4 +147,7 @@ public class PhoneCamera : MonoBehaviour
         }
     }
 
+    public void TogglePlayPause() {
+        replay = !replay;
+    }
 }
